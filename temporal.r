@@ -1,6 +1,6 @@
 
 
-xx <- Datos(Fecha_Ini="2023-02-01",Fecha_Fin="2023-02-28")
+xx <- Datos(Fecha_Ini="2023-09-12",Fecha_Fin="2023-09-12")
 x <- xx
 
 xx <- Datos(Fecha_Ini="2023-08-01",Fecha_Fin="2023-08-30")
