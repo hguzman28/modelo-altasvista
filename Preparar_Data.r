@@ -1,6 +1,7 @@
 
 
 Prep_Data <- function(x){
+	library(data.table)
 
 	#x <- fread("E:/OneDrive/YouNeed (J)/CLIENTES/Alta Vista/Base.csv",encoding = "UTF-8")
 

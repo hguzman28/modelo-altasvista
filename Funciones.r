@@ -1,6 +1,7 @@
 
-Prep_Data <- function(x){
 
+Prep_Data <- function(x){
+	
 	Pfiltro <- grep("TRUE",names(x) %in% c("Hora.añadida","Hora.en.la.que.se.sentó","Hora","Fecha","Nombre_Completo","Fecha.añadida","Restaurante","Nombre",
 										"Apellidos","Mesa","Zona.de.la.mesa","GFestivos","Origen","Reserva de grupo",
 										"Restaurante2","Hora","PAX","Tiempo_Reserva","Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res",
@@ -18,8 +19,12 @@ Prep_Data <- function(x){
 	x[,ZONA_MESA:=as.factor(x$Zona.de.la.mesa),]
 
 
-	x[,Nombre_Completo:=gsub("([[:punct:]])","",trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(paste(Nombre,Apellidos), locale = "es"))))]
-	x[,Restaurante2:=trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(Restaurante, locale = "es")))]
+	# x[,Nombre_Completo:=gsub("([[:punct:]])","",trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(paste(Nombre,Apellidos), locale = "es"))))]
+	# x[,Restaurante2:=trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(Restaurante, locale = "es")))]
+
+	x[, Nombre_Completo := gsub("([[:punct:]])", "", toupper(paste(Nombre, Apellidos))),]
+	x[, Restaurante2 := toupper(Restaurante),]
+
 
 
 	x[,Fecha:=as.Date(Fecha,"%Y-%m-%d")]
@@ -103,8 +108,11 @@ Prep_Data <- function(x){
 ############################################
 	  ### Consulta BAses de Datos ####
 ############################################
+
 Datos <- function(Fecha_Ini="2023-06-01",Fecha_Fin="2023-06-30"){
 
+	# library(rvest)
+	# library(data.table)
 	# Parameters
 	email<-"reservasgrupoaltasvistas3@gmail.com"
 	pass<-"123456"
