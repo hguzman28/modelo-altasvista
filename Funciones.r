@@ -1,11 +1,11 @@
 
 Prep_Data <- function(x){
 
-	Pfiltro <- grep("TRUE",names(x) %in% c("Email","Teléfono","Hora.añadida","Hora.en.la.que.se.sentó","Hora","Fecha","Nombre_Completo","Fecha.añadida","Restaurante","Nombre",
-										"Apellidos","Mesa","Zona.de.la.mesa","GFestivos","Origen","Reserva de grupo",
+	Pfiltro <- grep("TRUE",names(x) %in% c("Email","Telefono","Hora_anadida","Hora_en_la_que_se_sento","Hora","Fecha","Nombre_Completo","Fecha_anadida","Restaurante","Nombre",
+										"Apellidos","Mesa","Zona_de_la_mesa","GFestivos","Origen","Reserva de grupo",
 										"Restaurante2","Hora","PAX","Tiempo_Reserva","Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res",
 										"Dia_Semana_Res","Reconfirmado","Origen","Reservas_Antes","Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento",
-										"Nº.total.PAX","Servicio"))
+										"N_total_PAX","Servicio"))
 										
 	x <- x[,Pfiltro,with=FALSE]
 
@@ -15,7 +15,7 @@ Prep_Data <- function(x){
 	
 	#x <- Datos()
 
-	x[,ZONA_MESA:=as.factor(x$Zona.de.la.mesa),]
+	x[,ZONA_MESA:=as.factor(x$Zona_de_la_mesa),]
 
 
 	x[,Nombre_Completo:=gsub("([[:punct:]])","",trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(paste(Nombre,Apellidos), locale = "es"))))]
@@ -23,7 +23,7 @@ Prep_Data <- function(x){
 
 
 	x[,Fecha:=as.Date(Fecha,"%Y-%m-%d")]
-	x[,Fecha_anadida:=as.Date(Fecha.añadida,"%Y-%m-%d")]
+	x[,Fecha_anadida:=as.Date(Fecha_anadida,"%Y-%m-%d")]
 
 	filtro <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS")
 	x <- x[Restaurante2 %in% filtro,]
@@ -34,7 +34,7 @@ Prep_Data <- function(x){
 
 	x[,A:=1]
 
-	x[,Incumple:=ifelse(nchar(Hora.en.la.que.se.sentó)>5,0,1)]
+	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>5,0,1)]
 	x[,Incumple:=ifelse(is.na(Incumple)==1,1,Incumple),]
 	x[,Tiempo_Reserva:=as.numeric(Fecha-Fecha_anadida)]
 	x[,Mes_Ir:=month(Fecha)]
@@ -46,9 +46,9 @@ Prep_Data <- function(x){
 
 
 
-	x <- unique(x,by=c("Nº.total.PAX","Incumple","Nombre_Completo"))
-	x[,tem:=cumsum(A),by=c("Nombre_Completo","Nº.total.PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
-	x[,tem:=max(tem),by=c("Nombre_Completo","Nº.total.PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
+	x <- unique(x,by=c("N_total_PAX","Incumple","Nombre_Completo"))
+	x[,tem:=cumsum(A),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
+	x[,tem:=max(tem),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
 	x[,tem:=ifelse(tem>1&Incumple==1,1,0),]
 
 	#x <- x[tem==0,]
@@ -93,9 +93,9 @@ Prep_Data <- function(x){
 	levels(x$Restaurante2) <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS")
 	levels(x$Incumple) <- c("0","1")
 	levels(x$Origen) <- c("appmovil","moduloweb","software","terceros","waitinglist")
-	x[,Hora.en.la.que.se.sentó:=ifelse(is.na(Hora.en.la.que.se.sentó)==1,1,Hora.en.la.que.se.sentó)]
-	x[,Hora.en.la.que.se.sentó:=as.character(Hora.en.la.que.se.sentó),]
-	x[,Fecha.añadida:=as.IDate(Fecha.añadida),]
+	x[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento)==1,1,Hora_en_la_que_se_sento)]
+	x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
+	x[,Fecha_anadida:=as.IDate(Fecha_anadida),]
 	x
 	
 }
@@ -103,7 +103,7 @@ Prep_Data <- function(x){
 ############################################
 	  ### Consulta BAses de Datos ####
 ############################################
-Datos <- function(Fecha_Ini="2023-06-01",Fecha_Fin="2023-06-30"){
+Datos <- function(Fecha_Ini="2023-09-01";Fecha_Fin="2023-09-01"){
 
 	# Parameters
 	email<-"reservasgrupoaltasvistas3@gmail.com"
@@ -124,6 +124,33 @@ Datos <- function(Fecha_Ini="2023-06-01",Fecha_Fin="2023-06-30"){
 
 	# Scrape html_table from the logged in session
 	Tracking_reservas<- as.data.table(html_table(session_open)) 
+	a <- grep("TRUE",(names(Tracking_reservas)%in% c("Nº.total.PAX","Zona.de.la.mesa","Código.reserva","Teléfono","Fecha.añadida","Hora.añadida","Hora.en.la.que.se.sentó")))
+	names(Tracking_reservas)[a] <- c("N_total_PAX","Zona_de_la_mesa","Codigo_reserva","Telefono","Fecha_anadida","Hora_anadida","Hora_en_la_que_se_sento")
+	
+	filtro <- c("Fecha","N_total_PAX","Hora","Nombre","Apellidos","Servicio","PAX","Mesa","Zona_de_la_mesa",
+			    "Telefono","Email","Origen","Fecha_anadida","Hora_anadida","Restaurante","Reconfirmado","Hora_en_la_que_se_sento")
+				
+	Tracking_reservas <- Tracking_reservas[,filtro,with=FALSE]
+	Tracking_reservas[,Fecha:=as.Date(Fecha)]
+	Tracking_reservas[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento)]
+	
+	
+	## conectarse a mongo para los datos Historicos
+	library(mongolite)
+	connection_string = 'mongodb+srv://UserAltasVistas:YNAltasVistas@cluster-altas-vistas.bwxiixl.mongodb.net/'
+	trips_collection = mongo(collection="Datos_Altas_Vistas", db="Historico", url=connection_string)
+	result <- data.table(trips_collection$find(query = '{}') )
+	
+	result[,Fecha:=as.Date(Fecha)]
+	result[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento)]
+	
+	a <- sort(unique(result$Fecha))[-1]
+	
+	result <- result[Fecha %in% a,]
+	
+	l = list(result,Tracking_reservas)
+	Tracking_reservas <- rbindlist(l, use.names=TRUE)
+	
 	Tracking_reservas
 
 }
