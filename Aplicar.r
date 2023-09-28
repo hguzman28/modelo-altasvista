@@ -13,9 +13,10 @@ Calificar <- function(FI="2023-09-02",FF="2023-09-02",Parametro=0.63){
 	library(pROC)
 	library(rvest)
 	library(xml2)
+	library(mongolite)
 
-	load("E:/OneDrive/YouNeed (J)/CLIENTES/Alta Vista/Modelo_Final.RData")
-	load("E:/OneDrive/YouNeed (J)/CLIENTES/Alta Vista/Funciones.RData")
+	load("E:/OneDrive/YouNeed (J)/Codigos Github/Altas_Vistas/Modelo_Final.RData")
+	load("E:/OneDrive/YouNeed (J)/Codigos Github/Altas_Vistas/Funciones.RData")
 	
 	x <- Datos(Fecha_Ini=FI,Fecha_Fin=FF)
 	
