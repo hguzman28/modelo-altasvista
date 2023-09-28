@@ -103,7 +103,7 @@ Prep_Data <- function(x){
 ############################################
 	  ### Consulta BAses de Datos ####
 ############################################
-Datos <- function(Fecha_Ini="2023-09-01",Fecha_Fin="2023-09-01"){
+Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
 
 	# Parameters
 	email<-"reservasgrupoaltasvistas3@gmail.com"
