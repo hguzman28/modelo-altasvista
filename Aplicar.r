@@ -1,4 +1,4 @@
-Calificar <- function(FI="2023-09-23",FF="2023-09-23",Parametro=0.63){
+Calificar <- function(FI="2023-09-02",FF="2023-09-02",Parametro=0.63){
 
 	library(data.table)
 	library(stringr)
@@ -32,3 +32,4 @@ Calificar <- function(FI="2023-09-23",FF="2023-09-23",Parametro=0.63){
 }
 
 
+FI="2023-09-02";FF="2023-09-02";Parametro=0.63
