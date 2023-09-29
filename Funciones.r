@@ -1,8 +1,8 @@
 
 
 Prep_Data <- function(x){
-	
-	Pfiltro <- grep("TRUE",names(x) %in% c("Hora.añadida","Hora.en.la.que.se.sentó","Hora","Fecha","Nombre_Completo","Fecha.añadida","Restaurante","Nombre",
+
+	Pfiltro <- grep("TRUE",names(x) %in% c("Email","Teléfono","Hora.añadida","Hora.en.la.que.se.sentó","Hora","Fecha","Nombre_Completo","Fecha.añadida","Restaurante","Nombre",
 										"Apellidos","Mesa","Zona.de.la.mesa","GFestivos","Origen","Reserva de grupo",
 										"Restaurante2","Hora","PAX","Tiempo_Reserva","Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res",
 										"Dia_Semana_Res","Reconfirmado","Origen","Reservas_Antes","Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento",
