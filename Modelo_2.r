@@ -14,9 +14,9 @@ library(xml2)
 
 ######################################################################################################################
 
-Vexp <- grep("TRUE",names(x) %in% c("Mesa","Zona.de.la.mesa","GFestivos","Origen","Reserva de grupo","Restaurante2","Hora","PAX","Tiempo_Reserva",
+Vexp <- grep("TRUE",names(x) %in% c("Mesa","Zona_de_la_mesa","GFestivos","Origen","Reserva de grupo","Restaurante2","Hora","PAX","Tiempo_Reserva",
 									"Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res","Dia_Semana_Res",
-									"Reservas_Antes","Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento","Hora.añadida"))
+									"Reservas_Antes","Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento","Hora_anadida"))
 									
 Vobj <- grep("TRUE",names(x) %in% "Incumple")
 

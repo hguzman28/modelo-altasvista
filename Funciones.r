@@ -34,7 +34,7 @@ Prep_Data <- function(x){
 
 	x[,A:=1]
 
-	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>5,0,1)]
+	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>2,0,1)]
 	x[,Incumple:=ifelse(is.na(Incumple)==1,1,Incumple),]
 	x[,Tiempo_Reserva:=as.numeric(Fecha-Fecha_anadida)]
 	x[,Mes_Ir:=month(Fecha)]
@@ -93,7 +93,8 @@ Prep_Data <- function(x){
 	levels(x$Restaurante2) <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS")
 	levels(x$Incumple) <- c("0","1")
 	levels(x$Origen) <- c("appmovil","moduloweb","software","terceros","waitinglist")
-	x[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento)==1,1,Hora_en_la_que_se_sento)]
+	
+	x[is.na(Hora_en_la_que_se_sento)==1,Hora_en_la_que_se_sento:=1,]
 	x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
 	x[,Fecha_anadida:=as.IDate(Fecha_anadida),]
 	x
