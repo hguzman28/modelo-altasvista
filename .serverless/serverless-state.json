@@ -180,7 +180,7 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
-                "ImageUri": "397080067026.dkr.ecr.us-east-1.amazonaws.com/serverless-modeloaltavistas-dev@sha256:c2abba0ed5b11ebfebcdad6af70f0661ee38c0a8d31b494b639df951f6e303f1"
+                "ImageUri": "397080067026.dkr.ecr.us-east-1.amazonaws.com/serverless-modeloaltavistas-dev@sha256:770a3b869777b00ebab578baf9fc38f29cfa71773cad9f18f81ee5734a8f94c4"
               },
               "PackageType": "Image",
               "FunctionName": "modeloAltavistas",
@@ -202,14 +202,14 @@
               "AppLogGroup"
             ]
           },
-          "AppLambdaVersioneq83hCl1BKyUvJtzav7zs3BItaCoRNLdfpiSTEMAQ": {
+          "AppLambdaVersionN6ECjwAsk6xG8GmNoddskBuIDJU4wYQltrT7k31Mvsw": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppLambdaFunction"
               },
-              "CodeSha256": "c2abba0ed5b11ebfebcdad6af70f0661ee38c0a8d31b494b639df951f6e303f1"
+              "CodeSha256": "770a3b869777b00ebab578baf9fc38f29cfa71773cad9f18f81ee5734a8f94c4"
             }
           }
         },
@@ -225,7 +225,7 @@
           "AppLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppLambdaVersioneq83hCl1BKyUvJtzav7zs3BItaCoRNLdfpiSTEMAQ"
+              "Ref": "AppLambdaVersionN6ECjwAsk6xG8GmNoddskBuIDJU4wYQltrT7k31Mvsw"
             },
             "Export": {
               "Name": "sls-modeloAltavistas-dev-AppLambdaFunctionQualifiedArn"
@@ -338,7 +338,7 @@
         "memory": 1024,
         "timeout": 900,
         "vpc": {},
-        "versionLogicalId": "AppLambdaVersioneq83hCl1BKyUvJtzav7zs3BItaCoRNLdfpiSTEMAQ"
+        "versionLogicalId": "AppLambdaVersionN6ECjwAsk6xG8GmNoddskBuIDJU4wYQltrT7k31Mvsw"
       }
     },
     "configValidationMode": "warn",
@@ -348,7 +348,7 @@
       "package": {
         "individually": true,
         "artifactsS3KeyDirname": "serverless/modeloAltavistas/dev/code-artifacts",
-        "artifactDirectoryName": "serverless/modeloAltavistas/dev/1695652109682-2023-09-25T14:28:29.682Z"
+        "artifactDirectoryName": "serverless/modeloAltavistas/dev/1696009172317-2023-09-29T17:39:32.317Z"
       },
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
@@ -365,7 +365,7 @@
   },
   "package": {
     "individually": true,
-    "artifactDirectoryName": "serverless/modeloAltavistas/dev/1695652109682-2023-09-25T14:28:29.682Z",
+    "artifactDirectoryName": "serverless/modeloAltavistas/dev/1696009172317-2023-09-29T17:39:32.317Z",
     "artifact": ""
   }
 }

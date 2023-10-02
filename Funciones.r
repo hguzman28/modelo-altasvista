@@ -1,5 +1,4 @@
 
-
 Prep_Data <- function(x){
 
 	Pfiltro <- grep("TRUE",names(x) %in% c("Email","Telefono","Hora_anadida","Hora_en_la_que_se_sento","Hora","Fecha","Nombre_Completo","Fecha_anadida","Restaurante","Nombre",
@@ -19,12 +18,8 @@ Prep_Data <- function(x){
 	x[,ZONA_MESA:=as.factor(x$Zona_de_la_mesa),]
 
 
-	# x[,Nombre_Completo:=gsub("([[:punct:]])","",trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(paste(Nombre,Apellidos), locale = "es"))))]
-	# x[,Restaurante2:=trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(Restaurante, locale = "es")))]
-
-	x[, Nombre_Completo := gsub("([[:punct:]])", "", toupper(paste(Nombre, Apellidos))),]
-	x[, Restaurante2 := toupper(Restaurante),]
-
+	x[,Nombre_Completo:=gsub("([[:punct:]])","",trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(paste(Nombre,Apellidos), locale = "es"))))]
+	x[,Restaurante2:=trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(Restaurante, locale = "es")))]
 
 
 	x[,Fecha:=as.Date(Fecha,"%Y-%m-%d")]
@@ -39,7 +34,7 @@ Prep_Data <- function(x){
 
 	x[,A:=1]
 
-	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>2,0,1)]
+	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>5,0,1)]
 	x[,Incumple:=ifelse(is.na(Incumple)==1,1,Incumple),]
 	x[,Tiempo_Reserva:=as.numeric(Fecha-Fecha_anadida)]
 	x[,Mes_Ir:=month(Fecha)]
@@ -98,8 +93,7 @@ Prep_Data <- function(x){
 	levels(x$Restaurante2) <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS")
 	levels(x$Incumple) <- c("0","1")
 	levels(x$Origen) <- c("appmovil","moduloweb","software","terceros","waitinglist")
-	
-	x[is.na(Hora_en_la_que_se_sento)==1,Hora_en_la_que_se_sento:=1,]
+	x[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento)==1,1,Hora_en_la_que_se_sento)]
 	x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
 	x[,Fecha_anadida:=as.IDate(Fecha_anadida),]
 	x
@@ -109,15 +103,8 @@ Prep_Data <- function(x){
 ############################################
 	  ### Consulta BAses de Datos ####
 ############################################
-<<<<<<< HEAD
-
-Datos <- function(Fecha_Ini="2023-06-01",Fecha_Fin="2023-06-30"){
-=======
 Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
->>>>>>> cf031a1b4cb7d5692afbed23d7e3bbdd047e5e7f
 
-	# library(rvest)
-	# library(data.table)
 	# Parameters
 	email<-"reservasgrupoaltasvistas3@gmail.com"
 	pass<-"123456"
