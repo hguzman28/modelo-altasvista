@@ -144,7 +144,19 @@ Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
 	result[,Fecha:=as.Date(Fecha)]
 	result[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento)]
 	
-	a <- sort(unique(result$Fecha))[-1]
+	a <- sort(unique(result$Fecha))#[-1]
+	
+	if(a[length(a)]==Fecha_Ini){
+		
+		result <- result[Fecha!=Fecha_Ini,]
+	
+	}
+	
+	if(length(a)==209){
+		
+		a <- sort(unique(result$Fecha))[-1]
+	
+	}
 	
 	result <- result[Fecha %in% a,]
 	
