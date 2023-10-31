@@ -1,7 +1,10 @@
-library(rvest)
 library(data.table)
+library(stringr)
+library(gdata)
 library(lubridate)
 library(randomForest)
+library(rvest)
+library(xml2)
 library(mongolite)
 
 
@@ -11,30 +14,49 @@ parity  <- function()
 	load("/lambda/Modelo_Final.RData")
 	# load("./Funciones.RData")
 	source("/lambda/Funciones.r")
-	
-	x <- Datos(Fecha_Ini="2023-09-14",Fecha_Fin="2023-09-14")
+
+	fecha_actual <- format(Sys.Date(), "%Y-%m-%d")
+	print(fecha_actual)
+
+	x <- Datos(Fecha_Ini=fecha_actual,Fecha_Fin=fecha_actual)
+
+	print("Data")
 	
 	x <- Prep_Data(x)
+	print("Prep_Data")
 	
+	x <- x[Fecha==fecha_actual,]
+	print("predict")
 	p <- predict(Mod_RF,x,type="prob")[,2]
 	x <- cbind(x,P_RF2=p)
-	x[,P_RF:=ifelse(P_RF2> 0.65,1,0)]
+	x[,P_RF:=ifelse(P_RF2> 0.63,1,0)]
+	#Mtest_EMP[[1]] <- round(prop.table(table(test[,Vobj],test$P_RF),1),2)
+	#round(prop.table(table(x$Incumple,x$P_RF),1),2)
+	
+	library(mongolite)
+	connection_string = 'mongodb+srv://UserAltasVistas:YNAltasVistas@cluster-altas-vistas.bwxiixl.mongodb.net/altasvisas?retryWrites=true&w=majority'
+	trips_collection = mongo(collection="resultados", db="altasvisas", url=connection_string)
+	
+	criterio <- paste0('{"Fecha": "',fecha_actual,'"}')
+	y <- data.table(trips_collection$find(query = criterio))
+	
+	`%notin%` <- Negate(`%in%`)
+	
+	x <- x[(Nombre_Completo %notin% y$Nombre_Completo) | Hora %notin% y$Hora,]
+	
+	if(nrow(x)>0){
+	
+		library(mongolite)
+		connection_string = 'mongodb+srv://UserAltasVistas:YNAltasVistas@cluster-altas-vistas.bwxiixl.mongodb.net/altasvisas?retryWrites=true&w=majority'
+		trips_collection = mongo(collection="resultados", db="altasvisas", url=connection_string)
+		trips_collection$insert(x)
+		
+	}
+	head(x)
+	
 
-	
-	# fwrite(x,"./Resultados.csv",bom=TRUE)
-	x
-	print(x)
-
-	# Conectarse a MongoDB
-	mongo_url <- "mongodb+srv://youneed:grVpxuOAVcJTkKhd@cluster0.3fthc83.mongodb.net/altasvisas?retryWrites=true&w=majority"
-	conn <- mongo(collection = "resultados", url = mongo_url)
-	
-	# Guardar el dataframe en MongoDB
-	conn$insert(x)
-	
-	# Cerrar la conexión con MongoDB
-	conn$disconnect()
-	x
+    # Puedes devolver un valor dummy si es necesario
+    return("Proceso completado exitosamente")
 }
 
 

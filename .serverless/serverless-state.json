@@ -1,8 +1,8 @@
 {
   "service": {
-    "service": "modeloAltavistas",
+    "service": "modeloAltavistas-prd4",
     "serviceObject": {
-      "name": "modeloAltavistas"
+      "name": "modeloAltavistas-prd4"
     },
     "provider": {
       "name": "aws",
@@ -95,7 +95,7 @@
           "AppLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/modeloAltavistas"
+              "LogGroupName": "/aws/lambda/modeloAltavistas-prd4"
             }
           },
           "IamRoleLambdaExecution": {
@@ -123,7 +123,7 @@
                     "Fn::Join": [
                       "-",
                       [
-                        "modeloAltavistas",
+                        "modeloAltavistas-prd4",
                         "dev",
                         "lambda"
                       ]
@@ -141,7 +141,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/modeloAltavistas:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/modeloAltavistas-prd4:*"
                           }
                         ]
                       },
@@ -152,7 +152,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/modeloAltavistas:*:*"
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/modeloAltavistas-prd4:*:*"
                           }
                         ]
                       }
@@ -165,7 +165,7 @@
                 "Fn::Join": [
                   "-",
                   [
-                    "modeloAltavistas",
+                    "modeloAltavistas-prd4",
                     "dev",
                     {
                       "Ref": "AWS::Region"
@@ -180,10 +180,10 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
               "Code": {
-                "ImageUri": "397080067026.dkr.ecr.us-east-1.amazonaws.com/serverless-modeloaltavistas-dev@sha256:770a3b869777b00ebab578baf9fc38f29cfa71773cad9f18f81ee5734a8f94c4"
+                "ImageUri": "397080067026.dkr.ecr.us-east-1.amazonaws.com/serverless-modeloaltavistas-prd4-dev@sha256:3b0dc11ebf323b661a5514dd4e43bc100035c997258567468046359a73635442"
               },
               "PackageType": "Image",
-              "FunctionName": "modeloAltavistas",
+              "FunctionName": "modeloAltavistas-prd4",
               "MemorySize": 1024,
               "Timeout": 900,
               "Environment": {
@@ -202,14 +202,51 @@
               "AppLogGroup"
             ]
           },
-          "AppLambdaVersionN6ECjwAsk6xG8GmNoddskBuIDJU4wYQltrT7k31Mvsw": {
+          "AppLambdaVersion3EkBJrKqVurX0GunW9WLKfIQayja08D6TYVAkSTTzlU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppLambdaFunction"
               },
-              "CodeSha256": "770a3b869777b00ebab578baf9fc38f29cfa71773cad9f18f81ee5734a8f94c4"
+              "CodeSha256": "3b0dc11ebf323b661a5514dd4e43bc100035c997258567468046359a73635442"
+            }
+          },
+          "AppEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(50 minutes)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "AppLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "appSchedule"
+                }
+              ]
+            }
+          },
+          "AppLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "AppLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "AppEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
             }
           }
         },
@@ -219,16 +256,16 @@
               "Ref": "ServerlessDeploymentBucket"
             },
             "Export": {
-              "Name": "sls-modeloAltavistas-dev-ServerlessDeploymentBucketName"
+              "Name": "sls-modeloAltavistas-prd4-dev-ServerlessDeploymentBucketName"
             }
           },
           "AppLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppLambdaVersionN6ECjwAsk6xG8GmNoddskBuIDJU4wYQltrT7k31Mvsw"
+              "Ref": "AppLambdaVersion3EkBJrKqVurX0GunW9WLKfIQayja08D6TYVAkSTTzlU"
             },
             "Export": {
-              "Name": "sls-modeloAltavistas-dev-AppLambdaFunctionQualifiedArn"
+              "Name": "sls-modeloAltavistas-prd4-dev-AppLambdaFunctionQualifiedArn"
             }
           }
         }
@@ -329,26 +366,30 @@
         "image": {
           "name": "appimage"
         },
-        "name": "modeloAltavistas",
+        "name": "modeloAltavistas-prd4",
         "environment": {
           "STAGE": "dev"
         },
-        "events": [],
+        "events": [
+          {
+            "schedule": "rate(50 minutes)"
+          }
+        ],
         "package": {},
         "memory": 1024,
         "timeout": 900,
         "vpc": {},
-        "versionLogicalId": "AppLambdaVersionN6ECjwAsk6xG8GmNoddskBuIDJU4wYQltrT7k31Mvsw"
+        "versionLogicalId": "AppLambdaVersion3EkBJrKqVurX0GunW9WLKfIQayja08D6TYVAkSTTzlU"
       }
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yaml",
     "initialServerlessConfig": {
-      "service": "modeloAltavistas",
+      "service": "modeloAltavistas-prd4",
       "package": {
         "individually": true,
-        "artifactsS3KeyDirname": "serverless/modeloAltavistas/dev/code-artifacts",
-        "artifactDirectoryName": "serverless/modeloAltavistas/dev/1696009172317-2023-09-29T17:39:32.317Z"
+        "artifactsS3KeyDirname": "serverless/modeloAltavistas-prd4/dev/code-artifacts",
+        "artifactDirectoryName": "serverless/modeloAltavistas-prd4/dev/1698785458340-2023-10-31T20:50:58.340Z"
       },
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
@@ -365,7 +406,7 @@
   },
   "package": {
     "individually": true,
-    "artifactDirectoryName": "serverless/modeloAltavistas/dev/1696009172317-2023-09-29T17:39:32.317Z",
+    "artifactDirectoryName": "serverless/modeloAltavistas-prd4/dev/1698785458340-2023-10-31T20:50:58.340Z",
     "artifact": ""
   }
 }

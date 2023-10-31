@@ -34,7 +34,7 @@ Prep_Data <- function(x){
 
 	x[,A:=1]
 
-	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>5,0,1)]
+	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>2,0,1)]
 	x[,Incumple:=ifelse(is.na(Incumple)==1,1,Incumple),]
 	x[,Tiempo_Reserva:=as.numeric(Fecha-Fecha_anadida)]
 	x[,Mes_Ir:=month(Fecha)]
@@ -93,7 +93,8 @@ Prep_Data <- function(x){
 	levels(x$Restaurante2) <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS")
 	levels(x$Incumple) <- c("0","1")
 	levels(x$Origen) <- c("appmovil","moduloweb","software","terceros","waitinglist")
-	x[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento)==1,1,Hora_en_la_que_se_sento)]
+	
+	x[is.na(Hora_en_la_que_se_sento)==1,Hora_en_la_que_se_sento:=1,]
 	x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
 	x[,Fecha_anadida:=as.IDate(Fecha_anadida),]
 	x
@@ -139,33 +140,45 @@ Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
 	library(mongolite)
 	connection_string = 'mongodb+srv://UserAltasVistas:YNAltasVistas@cluster-altas-vistas.bwxiixl.mongodb.net/'
 	trips_collection = mongo(collection="Datos_Altas_Vistas", db="Historico", url=connection_string)
+
 	result <- data.table(trips_collection$find(query = '{}') )
-	
+		
 	result[,Fecha:=as.Date(Fecha)]
-	result[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento)]
+	result[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento)==1,0,Hora_en_la_que_se_sento)]
+	result[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento,"%Y-%m-%d")]
 	
 	a <- sort(unique(result$Fecha))#[-1]
 	
 	if(a[length(a)]==Fecha_Ini){
 		
 		result <- result[Fecha!=Fecha_Ini,]
-	
-	}
-	
-	if(length(a)==209){
 		
-		a <- sort(unique(result$Fecha))[-1]
+		criterio <- paste0('{"Fecha":"',Fecha_Ini,'"}')
+		trips_collection$remove(query = criterio)
+		trips_collection$insert(Tracking_reservas)
 	
 	}
 	
-	result <- result[Fecha %in% a,]
+	if(a[length(a)]!=Fecha_Ini){
+		
+		result <- result[Fecha!=Fecha_Ini,]
+		trips_collection$insert(Tracking_reservas)
+		
+		a <- sort(unique(result$Fecha))[1]
+		criterio <- paste0('{"Fecha":"',a,'"}')
+		trips_collection$remove(query = criterio)
 	
+	}
+	
+	# if(length(a)==210){
+		
+		# a <- sort(unique(result$Fecha))[1]
+		# criterio <- paste0('{"Fecha":"',a,'"}')
+		# trips_collection$remove(query = criterio)
+		
+	# }
 	l = list(result,Tracking_reservas)
-	Tracking_reservas <- rbindlist(l, use.names=TRUE)
-	
-	trips_collection$drop()
-	trips_collection$insert(Tracking_reservas)
-	
+	Tracking_reservas <- rbind(result,Tracking_reservas)
 	Tracking_reservas
 
 }

@@ -1,4 +1,4 @@
-service: modeloAltavistas
+service: modeloAltavistas-prd4
 
 package:
   individually: true
@@ -26,14 +26,12 @@ functions:
   app:
     image:
       name: appimage
-    name: modeloAltavistas
+    name: modeloAltavistas-prd4
 
 
     environment:
       STAGE: ${self:provider.stage}
 
 
-    # events:
-    #   - http:
-    #       method: post
-    #       path: /r
+    events:
+      - schedule: rate(50 minutes)
