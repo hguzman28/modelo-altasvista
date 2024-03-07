@@ -1,11 +1,11 @@
 
-Prep_Data <- function(x){
+Prep_Data <- function(x,Entrena_Model=0){
 
 	Pfiltro <- grep("TRUE",names(x) %in% c("Email","Telefono","Hora_anadida","Hora_en_la_que_se_sento","Hora","Fecha","Nombre_Completo","Fecha_anadida","Restaurante","Nombre",
 										"Apellidos","Mesa","Zona_de_la_mesa","GFestivos","Origen","Reserva de grupo",
 										"Restaurante2","Hora","PAX","Tiempo_Reserva","Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res",
 										"Dia_Semana_Res","Reconfirmado","Origen","Reservas_Antes","Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento",
-										"N_total_PAX","Servicio"))
+										"N_total_PAX","Servicio","Estado"))
 										
 	x <- x[,Pfiltro,with=FALSE]
 
@@ -25,7 +25,7 @@ Prep_Data <- function(x){
 	x[,Fecha:=as.Date(Fecha,"%Y-%m-%d")]
 	x[,Fecha_anadida:=as.Date(Fecha_anadida,"%Y-%m-%d")]
 
-	filtro <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS")
+	filtro <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS","SEXY TOKYO | ALTAS VISTAS")
 	x <- x[Restaurante2 %in% filtro,]
 	x <- x[Origen != "walk in",]
 
@@ -46,7 +46,8 @@ Prep_Data <- function(x){
 
 
 
-	x <- unique(x,by=c("N_total_PAX","Incumple","Nombre_Completo"))
+	#x <- unique(x,by=c("N_total_PAX","Incumple","Nombre_Completo"))
+	x <- unique(x)
 	x[,tem:=cumsum(A),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
 	x[,tem:=max(tem),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
 	x[,tem:=ifelse(tem>1&Incumple==1,1,0),]
@@ -76,6 +77,9 @@ Prep_Data <- function(x){
 	x[,Ano_Mes_Ir:=paste0(year(Fecha),"-",Mes_Ir)]
 	x[,Mes_Dia_Ir:=paste0(Mes_Ir,"-",Dia_Mes_Ir)]
 	
+	if(Entrena_Model==0){
+		x <- x[Estado != "Cancelado por el cliente",]
+	}
 	# URL de la página web
 	url <- "https://www.festivos.com.co/"
 
@@ -89,10 +93,24 @@ Prep_Data <- function(x){
 		
 	x[,GFestivos:=ifelse(Fecha %in% Festivos,1,0)]
 	
-	levels(x$Reconfirmado) <- c("SI","NO")
-	levels(x$Restaurante2) <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS")
-	levels(x$Incumple) <- c("0","1")
-	levels(x$Origen) <- c("appmovil","moduloweb","software","terceros","waitinglist")
+	
+	
+	
+	bigMap <- mapLevels(x=list(c("SI","NO"), x$Reconfirmado),codes=FALSE,combine=TRUE)
+	mapLevels(x$Reconfirmado) <- bigMap
+	
+	res <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS","SEXY TOKYO | ALTAS VISTAS")
+	bigMap <- mapLevels(x=list((res), x$Restaurante2),codes=FALSE,combine=TRUE)
+	mapLevels(x$Restaurante2) <- bigMap
+	
+	bigMap <- mapLevels(x=list(c("0","1"), x$Incumple),codes=FALSE,combine=TRUE)
+	mapLevels(x$Incumple) <- bigMap
+	
+	bigMap <- mapLevels(x=list(c("appmovil","moduloweb","software","terceros","waitinglist"), x$Origen),codes=FALSE,combine=TRUE)
+	mapLevels(x$Origen) <- bigMap
+	
+
+	
 	
 	x[is.na(Hora_en_la_que_se_sento)==1,Hora_en_la_que_se_sento:=1,]
 	x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
@@ -104,8 +122,9 @@ Prep_Data <- function(x){
 ############################################
 	  ### Consulta BAses de Datos ####
 ############################################
-Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
-
+Datos <- function(Fecha_Ini="2023-12-31",Fecha_Fin="2023-12-31"){
+	
+	
 	# Parameters
 	email<-"reservasgrupoaltasvistas3@gmail.com"
 	pass<-"123456"
@@ -129,7 +148,7 @@ Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
 	names(Tracking_reservas)[a] <- c("N_total_PAX","Zona_de_la_mesa","Codigo_reserva","Telefono","Fecha_anadida","Hora_anadida","Hora_en_la_que_se_sento")
 	
 	filtro <- c("Fecha","N_total_PAX","Hora","Nombre","Apellidos","Servicio","PAX","Mesa","Zona_de_la_mesa",
-			    "Telefono","Email","Origen","Fecha_anadida","Hora_anadida","Restaurante","Reconfirmado","Hora_en_la_que_se_sento")
+			    "Telefono","Email","Origen","Fecha_anadida","Hora_anadida","Restaurante","Reconfirmado","Hora_en_la_que_se_sento","Estado")
 				
 	Tracking_reservas <- Tracking_reservas[,filtro,with=FALSE]
 	Tracking_reservas[,Fecha:=as.Date(Fecha)]
@@ -144,12 +163,13 @@ Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
 	result <- data.table(trips_collection$find(query = '{}') )
 		
 	result[,Fecha:=as.Date(Fecha)]
+	result[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
 	result[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento)==1,0,Hora_en_la_que_se_sento)]
 	result[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento,"%Y-%m-%d")]
 	
 	a <- sort(unique(result$Fecha))#[-1]
 	
-	if(a[length(a)]==Fecha_Ini){
+	if((Fecha_Ini %in% as.character(a))==1){
 		
 		result <- result[Fecha!=Fecha_Ini,]
 		
@@ -157,16 +177,14 @@ Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
 		trips_collection$remove(query = criterio)
 		trips_collection$insert(Tracking_reservas)
 	
-	}
-	
-	if(a[length(a)]!=Fecha_Ini){
-		
-		result <- result[Fecha!=Fecha_Ini,]
+	}else{
 		trips_collection$insert(Tracking_reservas)
 		
-		a <- sort(unique(result$Fecha))[1]
-		criterio <- paste0('{"Fecha":"',a,'"}')
-		trips_collection$remove(query = criterio)
+		if(unique(result$Fecha)>230){
+			a <- sort(unique(result$Fecha))[1]
+			criterio <- paste0('{"Fecha":"',a,'"}')
+			trips_collection$remove(query = criterio)
+		}
 	
 	}
 	
@@ -177,8 +195,8 @@ Datos <- function(Fecha_Ini="2023-09-02",Fecha_Fin="2023-09-02"){
 		# trips_collection$remove(query = criterio)
 		
 	# }
-	l = list(result,Tracking_reservas)
-	Tracking_reservas <- rbind(result,Tracking_reservas)
+	#l = list(result,Tracking_reservas)
+	Tracking_reservas <- rbind(result,Tracking_reservas,fill=TRUE)
 	Tracking_reservas
 
 }

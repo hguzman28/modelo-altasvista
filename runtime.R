@@ -12,7 +12,7 @@ parity  <- function()
 {
 	print("Inicia calificar")
 	load("/lambda/Modelo_Final.RData")
-	# load("./Funciones.RData")
+	# load("/lambda/Funciones.RData")
 	source("/lambda/Funciones.r")
 
 	fecha_actual <- format(Sys.Date(), "%Y-%m-%d")
