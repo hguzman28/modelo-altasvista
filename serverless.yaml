@@ -1,4 +1,4 @@
-service: modeloAltavistas-prdv10
+service: modeloAltavistas-prdv11
 
 package:
   individually: true
@@ -26,7 +26,7 @@ functions:
   app:
     image:
       name: appimage
-    name: modeloAltavistas-prdv10
+    name: modeloAltavistas-prdv11
 
 
     environment:
