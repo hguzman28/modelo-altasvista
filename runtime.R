@@ -57,9 +57,9 @@ parity  <- function()
 		
 	}
 	print("head")
-	head(x)
+	print(head(x))
         print("### table ###")
-	table(x$P_RF)
+	print(table(x$P_RF))
 	
 
     # Puedes devolver un valor dummy si es necesario
