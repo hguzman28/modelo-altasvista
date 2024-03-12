@@ -4,20 +4,23 @@ library(gdata)
 library(lubridate)
 library(sampling)
 library(randomForest)
-library(C50)
+# library(C50)
 library(rpart)
 library(nnet)
-library(gbm)
-library(pROC)
+# library(gbm)
+# library(pROC)
 library(rvest)
 library(xml2)
 
 ######################################################################################################################
 
-Vexp <- grep("TRUE",names(x) %in% c("Mesa","Zona_de_la_mesa","GFestivos","Origen","Reserva de grupo","Restaurante2","Hora","PAX","Tiempo_Reserva",
-									"Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res","Dia_Semana_Res",
-									"Reservas_Antes","Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento","Hora_anadida"))
-									
+Vexp <- grep("TRUE",names(x) %in% c("Hora", "PAX", "Mesa", "Zona_de_la_mesa", "Origen", 
+									"Fecha_anadida", "Hora_anadida", "Reconfirmado", 
+									"Restaurante2", "Tiempo_Reserva", "Mes_Ir", "Dia_Mes_Ir", 
+									"Dia_Semana_Ir", "Mes_Res", "Dia_Mes_Res", "Dia_Semana_Res", 
+									"Reservas_Antes", "Reservas_Antes_Rest", "Antiguedad", 
+									"Antiguedad_Incumplimiento", "GFestivos"))
+						
 Vobj <- grep("TRUE",names(x) %in% "Incumple")
 
 	n <- table(x[,Vobj,with=FALSE])*0.6
@@ -36,6 +39,7 @@ Vobj <- grep("TRUE",names(x) %in% "Incumple")
 	Mod_RF <-randomForest(train[,Vexp],train[,Vobj], ntree=1333,doBest=TRUE,nodesize=1733,classwt=c(1,0.96),mtry = 6)
 	gc(reset=TRUE)
 	varImpPlot(Mod_RF)
+	save(Mod_RF, file = "/Users/admin/Documents/Projects/Altas Vistas/Desercion/GitHub/Modelo_Final.RData")
 	
 	gc(reset=TRUE)
 	

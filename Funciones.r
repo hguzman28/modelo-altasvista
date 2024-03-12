@@ -1,128 +1,10 @@
+#############################################################
+	  ### Consulta Cover Manager + Update Historico ####
+#############################################################
+# Fecha_Ini = "2023-07-03"
+# Fecha_Fin = "2023-07-03"
 
-Prep_Data <- function(x,Entrena_Model=0){
-
-	Pfiltro <- grep("TRUE",names(x) %in% c("Email","Telefono","Hora_anadida","Hora_en_la_que_se_sento","Hora","Fecha","Nombre_Completo","Fecha_anadida","Restaurante","Nombre",
-										"Apellidos","Mesa","Zona_de_la_mesa","GFestivos","Origen","Reserva de grupo",
-										"Restaurante2","Hora","PAX","Tiempo_Reserva","Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res",
-										"Dia_Semana_Res","Reconfirmado","Origen","Reservas_Antes","Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento",
-										"N_total_PAX","Servicio","Estado"))
-										
-	x <- x[,Pfiltro,with=FALSE]
-
-	#x <- fread("E:/OneDrive/YouNeed (J)/CLIENTES/Alta Vista/Base.csv"),encoding="UTF-8")
-
-	# temperatura <- fread("C:/Users/Johann/Downloads/Colombia.csv")
-	
-	#x <- Datos()
-
-	x[,ZONA_MESA:=as.factor(x$Zona_de_la_mesa),]
-
-
-	x[,Nombre_Completo:=gsub("([[:punct:]])","",trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(paste(Nombre,Apellidos), locale = "es"))))]
-	x[,Restaurante2:=trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(Restaurante, locale = "es")))]
-
-
-	x[,Fecha:=as.Date(Fecha,"%Y-%m-%d")]
-	x[,Fecha_anadida:=as.Date(Fecha_anadida,"%Y-%m-%d")]
-
-	filtro <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS","SEXY TOKYO | ALTAS VISTAS")
-	x <- x[Restaurante2 %in% filtro,]
-	x <- x[Origen != "walk in",]
-
-
-	setorderv(x,c("Nombre_Completo","Fecha","Restaurante2","Hora"))
-
-	x[,A:=1]
-
-	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>2,0,1)]
-	x[,Incumple:=ifelse(is.na(Incumple)==1,1,Incumple),]
-	x[,Tiempo_Reserva:=as.numeric(Fecha-Fecha_anadida)]
-	x[,Mes_Ir:=month(Fecha)]
-	x[,Dia_Mes_Ir:=day(Fecha),]
-	x[,Dia_Semana_Ir:=wday(Fecha),]
-	x[,Mes_Res:=month(Fecha_anadida)]
-	x[,Dia_Mes_Res:=day(Fecha_anadida),]
-	x[,Dia_Semana_Res:=wday(Fecha_anadida),]
-
-
-
-	#x <- unique(x,by=c("N_total_PAX","Incumple","Nombre_Completo"))
-	x <- unique(x)
-	x[,tem:=cumsum(A),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
-	x[,tem:=max(tem),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
-	x[,tem:=ifelse(tem>1&Incumple==1,1,0),]
-
-	#x <- x[tem==0,]
-
-
-	x[,Reservas_Antes:=cumsum(A),by=c("Nombre_Completo")]
-	x[,Reservas_Antes:=Reservas_Antes-1]
-
-	x[,Reservas_Antes_Rest:=cumsum(A),by=c("Nombre_Completo","Restaurante2")]
-	x[,Reservas_Antes_Rest:=Reservas_Antes_Rest-1]
-
-	x[,A:=ifelse(Incumple==0,1,0),]
-	x[,Antiguedad:=cumsum(A),by=c("Nombre_Completo")]
-	x[Antiguedad != 0,Antiguedad:=Antiguedad-1]
-	x[,Antiguedad_Incumplimiento:=cumsum(Incumple),by=c("Nombre_Completo")]
-	x[Antiguedad_Incumplimiento != 0 & Incumple==1,Antiguedad_Incumplimiento:=Antiguedad_Incumplimiento-1]
-
-	x[,Incumple:=as.factor(Incumple)]
-	x[,Restaurante2:=as.factor(Restaurante2),]
-	x[,Servicio:=as.factor(Servicio),]
-	x[,Reconfirmado:=as.factor(Reconfirmado),]
-	x[,Origen:=as.factor(Origen)]
-
-
-	x[,Ano_Mes_Ir:=paste0(year(Fecha),"-",Mes_Ir)]
-	x[,Mes_Dia_Ir:=paste0(Mes_Ir,"-",Dia_Mes_Ir)]
-	
-	if(Entrena_Model==0){
-		x <- x[Estado != "Cancelado por el cliente",]
-	}
-	# URL de la página web
-	url <- "https://www.festivos.com.co/"
-
-	# Realizar la solicitud a la página web
-	pagina <- read_html(url)
-
-	# Extraer la tabla de festivos
-	tabla_festivos <- html_table(pagina)
-
-	Festivos <- Fecha_Form(tabla_festivos[[1]]$Fecha)
-		
-	x[,GFestivos:=ifelse(Fecha %in% Festivos,1,0)]
-	
-	
-	
-	
-	bigMap <- mapLevels(x=list(c("SI","NO"), x$Reconfirmado),codes=FALSE,combine=TRUE)
-	mapLevels(x$Reconfirmado) <- bigMap
-	
-	res <- c("BOMBAY ROOFTOP | ALTAS VISTAS","SEXY SEOUL KOREAN BBQ | ALTAS VISTAS","ASTORIA ROOFTOP | ALTAS VISTAS","SANTORINI ROOFTOP | ALTAS VISTAS","REYNA | ALTAS VISTAS","SEXY TOKYO | ALTAS VISTAS")
-	bigMap <- mapLevels(x=list((res), x$Restaurante2),codes=FALSE,combine=TRUE)
-	mapLevels(x$Restaurante2) <- bigMap
-	
-	bigMap <- mapLevels(x=list(c("0","1"), x$Incumple),codes=FALSE,combine=TRUE)
-	mapLevels(x$Incumple) <- bigMap
-	
-	bigMap <- mapLevels(x=list(c("appmovil","moduloweb","software","terceros","waitinglist"), x$Origen),codes=FALSE,combine=TRUE)
-	mapLevels(x$Origen) <- bigMap
-	
-
-	
-	
-	x[is.na(Hora_en_la_que_se_sento)==1,Hora_en_la_que_se_sento:=1,]
-	x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
-	x[,Fecha_anadida:=as.IDate(Fecha_anadida),]
-	x
-	
-}
-
-############################################
-	  ### Consulta BAses de Datos ####
-############################################
-Datos <- function(Fecha_Ini="2023-12-31",Fecha_Fin="2023-12-31"){
+Datos <- function(Fecha_Ini, Fecha_Fin){
 	
 	
 	# Parameters
@@ -180,11 +62,11 @@ Datos <- function(Fecha_Ini="2023-12-31",Fecha_Fin="2023-12-31"){
 	}else{
 		trips_collection$insert(Tracking_reservas)
 		
-		if(unique(result$Fecha)>230){
-			a <- sort(unique(result$Fecha))[1]
-			criterio <- paste0('{"Fecha":"',a,'"}')
-			trips_collection$remove(query = criterio)
-		}
+		# if(unique(result$Fecha)>230){
+		# 	a <- sort(unique(result$Fecha))[1]
+		# 	criterio <- paste0('{"Fecha":"',a,'"}')
+		# 	trips_collection$remove(query = criterio)
+		# }
 	
 	}
 	
@@ -198,26 +80,173 @@ Datos <- function(Fecha_Ini="2023-12-31",Fecha_Fin="2023-12-31"){
 	#l = list(result,Tracking_reservas)
 	Tracking_reservas <- rbind(result,Tracking_reservas,fill=TRUE)
 	Tracking_reservas
-
 }
 
-###########################################
-### consulta los dias festivos del año ####
-###########################################
+#############################################################
+	  ### Procesamiento Data para modelo ####
+#############################################################
+
+Prep_Data <- function(x,Entrena_Model=0){
+
+	# Pfiltro <- grep("TRUE",names(x) %in% 
+	# 	c("Email","Telefono","Hora_anadida","Hora_en_la_que_se_sento","Hora",
+	# 		"Fecha","Nombre_Completo","Fecha_anadida","Restaurante","Nombre",
+	# 		"Apellidos","Mesa","Zona_de_la_mesa","GFestivos","Origen",
+	# 		"Reserva de grupo", "Restaurante2","Hora","PAX","Tiempo_Reserva",
+	# 		"Mes_Ir","Dia_Mes_Ir","Dia_Semana_Ir","Mes_Res","Dia_Mes_Res",
+	# 		"Dia_Semana_Res","Reconfirmado","Origen","Reservas_Antes",
+	# 		"Reservas_Antes_Rest","Antiguedad","Antiguedad_Incumplimiento",
+	# 		"N_total_PAX","Servicio","Estado"))
+										
+	# x <- x[,Pfiltro,with=FALSE]
+
+	#x <- fread("E:/OneDrive/YouNeed (J)/CLIENTES/Alta Vista/Base.csv"),encoding="UTF-8")
+
+	# temperatura <- fread("C:/Users/Johann/Downloads/Colombia.csv")
+	
+	#x <- Datos()
+
+	x[,ZONA_MESA:=as.factor(x$Zona_de_la_mesa),]
+
+	x[,Nombre_Completo:=gsub("([[:punct:]])","",trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(paste(Nombre,Apellidos), locale = "es"))))]
+	x[,Restaurante2:=trim(chartr('ÁÉÍÓÚ', 'AEIOU',str_to_upper(Restaurante, locale = "es")))]
+
+	x[,Fecha:=as.Date(Fecha,"%Y-%m-%d")]
+	x[,Fecha_anadida:=as.Date(Fecha_anadida,"%Y-%m-%d")]
+
+	filtro <- c("ASTORIA ROOFTOP | ALTAS VISTAS",
+	        	"BOMBAY ROOFTOP | ALTAS VISTAS",
+	        	"BOMBAY ROOFTOP 127 BOGOTA",
+	        	"REYNA | ALTAS VISTAS",
+	        	"SANTORINI ROOFTOP | ALTAS VISTAS", 
+	        	"SEXY SEOUL KOREAN BBQ | ALTAS VISTAS",
+	        	"SEXY TOKYO | ALTAS VISTAS")
+
+	x <- x[Restaurante2 %in% filtro,]
+	x <- x[Origen != "walk in",]
+
+	setorderv(x,c("Nombre_Completo","Fecha","Restaurante2","Hora"))
+
+	x[,A:=1]
+
+	x[,Incumple:=ifelse(nchar(Hora_en_la_que_se_sento)>2,0,1)]
+	x[,Incumple:=ifelse(is.na(Incumple)==1,1,Incumple),]
+	x[,Tiempo_Reserva:=as.numeric(Fecha-Fecha_anadida)]
+	x[,Mes_Ir:=month(Fecha)]
+	x[,Dia_Mes_Ir:=day(Fecha),]
+	x[,Dia_Semana_Ir:=wday(Fecha),]
+	x[,Mes_Res:=month(Fecha_anadida)]
+	x[,Dia_Mes_Res:=day(Fecha_anadida),]
+	x[,Dia_Semana_Res:=wday(Fecha_anadida),]
+
+	#x <- unique(x,by=c("N_total_PAX","Incumple","Nombre_Completo"))
+	x <- unique(x)
+	x[,tem:=cumsum(A),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
+	x[,tem:=max(tem),by=c("Nombre_Completo","N_total_PAX","Mes_Ir","Dia_Mes_Ir","Restaurante2")]
+	x[,tem:=ifelse(tem>1&Incumple==1,1,0),]
+
+	#x <- x[tem==0,]
+
+	x[,Reservas_Antes:=cumsum(A),by=c("Nombre_Completo")]
+	x[,Reservas_Antes:=Reservas_Antes-1]
+
+	x[,Reservas_Antes_Rest:=cumsum(A),by=c("Nombre_Completo","Restaurante2")]
+	x[,Reservas_Antes_Rest:=Reservas_Antes_Rest-1]
+
+	x[,A:=ifelse(Incumple==0,1,0),]
+	x[,Antiguedad:=cumsum(A),by=c("Nombre_Completo")]
+	x[Antiguedad != 0,Antiguedad:=Antiguedad-1]
+	x[,Antiguedad_Incumplimiento:=cumsum(Incumple),by=c("Nombre_Completo")]
+	x[Antiguedad_Incumplimiento != 0 & Incumple==1,Antiguedad_Incumplimiento:=Antiguedad_Incumplimiento-1]
+
+	x[,Incumple:=as.factor(Incumple)]
+	x[,Restaurante2:=as.factor(Restaurante2),]
+	x[,Servicio:=as.factor(Servicio),]
+	x[,Reconfirmado:=as.factor(Reconfirmado),]
+	x[,Origen:=as.factor(Origen)]
+
+	x[,Ano_Mes_Ir:=paste0(year(Fecha),"-",Mes_Ir)]
+	x[,Mes_Dia_Ir:=paste0(Mes_Ir,"-",Dia_Mes_Ir)]
+	
+	# ESTO SOLO ES PARA PRODUCTIVO
+	if(Entrena_Model==0){
+		x <- x[Estado != "Cancelado por el cliente",]
+	}
+	
+	# URL de la página web
+	url <- "https://www.festivos.com.co/"
+
+	# Realizar la solicitud a la página web
+	pagina <- read_html(url)
+
+	# Extraer la tabla de festivos
+	tabla_festivos <- html_table(pagina)
+
+	Festivos <- Fecha_Form(tabla_festivos[[1]]$Fecha)
+		
+	x[,GFestivos:=ifelse(Fecha %in% Festivos,1,0)]
+	
+	
+	bigMap <- mapLevels(x=list(c("SI","NO"), x$Reconfirmado),codes=FALSE,combine=TRUE)
+	mapLevels(x$Reconfirmado) <- bigMap
+	
+	res <- c("ASTORIA ROOFTOP | ALTAS VISTAS",
+	        	"BOMBAY ROOFTOP | ALTAS VISTAS",
+	        	"BOMBAY ROOFTOP 127 BOGOTA",
+	        	"REYNA | ALTAS VISTAS",
+	        	"SANTORINI ROOFTOP | ALTAS VISTAS", 
+	        	"SEXY SEOUL KOREAN BBQ | ALTAS VISTAS",
+	        	"SEXY TOKYO | ALTAS VISTAS")
+	bigMap <- mapLevels(x=list((res), x$Restaurante2),codes=FALSE,combine=TRUE)
+	mapLevels(x$Restaurante2) <- bigMap
+	
+	bigMap <- mapLevels(x=list(c("0","1"), x$Incumple),codes=FALSE,combine=TRUE)
+	mapLevels(x$Incumple) <- bigMap
+	
+	bigMap <- mapLevels(x=list(c("appmovil","moduloweb","software","terceros","waitinglist"), x$Origen),codes=FALSE,combine=TRUE)
+	mapLevels(x$Origen) <- bigMap
+
+	# Vexp <- c("Nombre_Completo", "Fecha", 
+	# 			"Hora", "PAX", "Mesa", "Zona_de_la_mesa", "Origen", 
+	# 			"Fecha_anadida", "Hora_anadida", "Reconfirmado", 
+	# 			"Restaurante2", "Tiempo_Reserva", "Mes_Ir", "Dia_Mes_Ir", 
+	# 			"Dia_Semana_Ir", "Mes_Res", "Dia_Mes_Res", "Dia_Semana_Res", 
+	# 			"Reservas_Antes", "Reservas_Antes_Rest", "Antiguedad", 
+	# 			"Antiguedad_Incumplimiento", "GFestivos")
+
+	Vexp <- c("Fecha", "N_total_PAX", "Hora", "Nombre", "Apellidos", "Servicio",
+			"PAX", "Mesa", "Zona_de_la_mesa", "Telefono", "Email", "Origen", 
+			"Fecha_anadida", "Hora_anadida", "Restaurante", "Reconfirmado", 
+			"Estado", "Hora_en_la_que_se_sento", "ZONA_MESA", "Nombre_Completo", 
+			"Restaurante2", "A", "Incumple", "Tiempo_Reserva", "Mes_Ir", "Dia_Mes_Ir",
+			"Dia_Semana_Ir", "Mes_Res", "Dia_Mes_Res", "Dia_Semana_Res", "tem",
+			"Reservas_Antes", "Reservas_Antes_Rest", "Antiguedad", 
+			"Antiguedad_Incumplimiento", "Ano_Mes_Ir", "Mes_Dia_Ir", "GFestivos")
+
+	x <- x[, Vexp, with = FALSE ]
+
+	# NA's
+	x[ , Hora_en_la_que_se_sento:= ifelse(is.na(Hora_en_la_que_se_sento)== TRUE, 0, Hora_en_la_que_se_sento)]
+
+	# x[is.na(Hora_en_la_que_se_sento)==1,Hora_en_la_que_se_sento:=1,]
+	# x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
+	# x[,Fecha_anadida:=as.IDate(Fecha_anadida),]
+	x	
+}
+
+#############################################################
+	  ### consulta los dias festivos del año ####
+#############################################################
 
 Fecha_Form <- function(x){
 
 	Sys.setlocale("LC_TIME", "Spanish")
-# Texto de la fecha
+	# Texto de la fecha
 	fecha_texto <- x
-# Parsear el texto a una fecha
+	# Parsear el texto a una fecha
 	fecha <- as.Date(fecha_texto, format = "%d de %B", tryFormats = c("%d de %B"))
-	fecha
-	
+	fecha   	
 }
-
-
-
 
 ###################################################################
 ### descarga por hora la temperatura y el pronostico del tiempo ###
@@ -272,55 +301,4 @@ Temperatura <- function(Lis_Mes=c(2,3,4,5,6),Ano=2023){
 	T2
 }
 
-
-
-
-
-
-# Temperatura <- function(Lis_Mes=c(2,3,4,5,6)){
-
-	# library(rvest)
-	# library(xml2)
-	# library(httr)
-	
-	# T <- data.table(Dia=0,Mes=0,Max=0,Min=0,Estados=0)
-	
-	# for(i in Lis_Mes){
-		
-		# meses <- c("January","February","March","April","May","June","July","August","September","October","November","December")
-		
-		# #mes <- month(Sys.Date())
-		# mes <- i
-
-		# # URL de la página web
-		# url <- paste0("https://www.tiempo3.com/south-america/colombia/san-andres-y-providencia/bogota?page=month&month=",meses[i])
-
-		# pagina <- read_html(url)
-
-		# botones <- pagina %>% html_nodes("table")
-
-		# botones <- botones[1]
-
-		# temp <- botones %>% html_nodes("a") %>% html_nodes("div") %>% html_nodes("span") %>% html_nodes("span") %>% html_text()
-		# temp <- temp[temp!="°"]
-
-		# tempe <- data.table(Max=temp[1],Min=temp[2])
-
-		# for(j in (seq(from = 4, to = length(temp), by = 2))){
-			# a <- data.table(Max=temp[j-1],Min=temp[j])
-			# tempe <- rbind(tempe,a)
-		# }
-
-		# Estados <- botones %>% html_nodes("img")
-		# Estados <- html_attr(Estados, "alt")
-
-		# tempe <- data.table(Dia=1:length(Estados),Mes=mes,tempe,Estados)
-		
-		# l = list(T,tempe)
-		# T <- rbindlist(l)
-		
-	# }
-	# T <- T[-1,]
-	# T
-
-# }
+# save.image(file="/Users/admin/Documents/Projects/Altas Vistas/Desercion/GitHub/Funciones.RData") 

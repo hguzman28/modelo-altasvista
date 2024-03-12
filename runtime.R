@@ -42,7 +42,11 @@ parity  <- function()
 	
 	`%notin%` <- Negate(`%in%`)
 	
-	x <- x[(Nombre_Completo %notin% y$Nombre_Completo) | Hora %notin% y$Hora,]
+	# crear llave para filtrar
+	y[ , key := paste0(Nombre_Completo, Hora)]
+	x[ , key := paste0(Nombre_Completo, Hora)]
+
+	x <- x[key %notin% y$key,]
 	
 	if(nrow(x)>0){
 	
@@ -52,7 +56,7 @@ parity  <- function()
 		trips_collection$insert(x)
 		
 	}
-	head(x)
+	# head(x)
 	
 
     # Puedes devolver un valor dummy si es necesario
