@@ -42,6 +42,11 @@ parity  <- function()
 	
 	`%notin%` <- Negate(`%in%`)
 	
+	print("### head antes de filtro 1 ###")
+	print(head(x))
+        print("### table ante de filtro ###")
+	print(table(x$P_RF))
+	
 	# crear llave para filtrar
 	y[ , key := paste0(Nombre_Completo, Hora)]
 	x[ , key := paste0(Nombre_Completo, Hora)]
