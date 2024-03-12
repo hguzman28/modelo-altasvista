@@ -56,7 +56,10 @@ parity  <- function()
 		trips_collection$insert(x)
 		
 	}
-	# head(x)
+	print("head")
+	head(x)
+        print("### table ###")
+	table(x$P_RF)
 	
 
     # Puedes devolver un valor dummy si es necesario
