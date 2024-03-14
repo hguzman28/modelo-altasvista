@@ -42,17 +42,14 @@ parity  <- function()
 	
 	`%notin%` <- Negate(`%in%`)
 	
-	print("### head antes de filtro 1 ###")
-	print(head(x))
-        print("### table ante de filtro ###")
-	print(table(x$P_RF))
-	
 	# crear llave para filtrar
-	y[ , key := paste0(Nombre_Completo, Hora)]
-	x[ , key := paste0(Nombre_Completo, Hora)]
+	if(nrow(y)>0){
+		y[ , key := paste0(Nombre_Completo, Hora)]
+		x[ , key := paste0(Nombre_Completo, Hora)]
 
-	x <- x[key %notin% y$key,]
-	
+		x <- x[key %notin% y$key,]
+	}
+
 	if(nrow(x)>0){
 	
 		library(mongolite)
@@ -61,10 +58,7 @@ parity  <- function()
 		trips_collection$insert(x)
 		
 	}
-	print("head")
-	print(head(x))
-        print("### table ###")
-	print(table(x$P_RF))
+	# head(x)
 	
 
     # Puedes devolver un valor dummy si es necesario
