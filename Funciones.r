@@ -1,11 +1,10 @@
 #############################################################
 	  ### Consulta Cover Manager + Update Historico ####
 #############################################################
-# Fecha_Ini = "2023-07-03"
-# Fecha_Fin = "2023-07-03"
+# Fecha_Ini = "2024-03-15"
+# Fecha_Fin = "2024-03-15"
 
 Datos <- function(Fecha_Ini, Fecha_Fin){
-	
 	
 	# Parameters
 	email<-"reservasgrupoaltasvistas3@gmail.com"
@@ -31,44 +30,49 @@ Datos <- function(Fecha_Ini, Fecha_Fin){
 	
 	filtro <- c("Fecha","N_total_PAX","Hora","Nombre","Apellidos","Servicio","PAX","Mesa","Zona_de_la_mesa",
 			    "Telefono","Email","Origen","Fecha_anadida","Hora_anadida","Restaurante","Reconfirmado","Hora_en_la_que_se_sento","Estado")
-				
+
 	Tracking_reservas <- Tracking_reservas[,filtro,with=FALSE]
 	Tracking_reservas[,Fecha:=as.Date(Fecha)]
+	# hay registros que llegan  de COVER totalmente en NA
+	Tracking_reservas <- Tracking_reservas[!is.na(Fecha),]
 	Tracking_reservas[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento)]
-	
+	Tracking_reservas[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento), 0, Hora_en_la_que_se_sento)]
 	
 	## conectarse a mongo para los datos Historicos
 	library(mongolite)
 	connection_string = 'mongodb+srv://UserAltasVistas:YNAltasVistas@cluster-altas-vistas.bwxiixl.mongodb.net/'
 	trips_collection = mongo(collection="Datos_Altas_Vistas", db="Historico", url=connection_string)
-
-	result <- data.table(trips_collection$find(query = '{}') )
-		
-	result[,Fecha:=as.Date(Fecha)]
-	result[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
-	result[,Hora_en_la_que_se_sento:=ifelse(is.na(Hora_en_la_que_se_sento)==1,0,Hora_en_la_que_se_sento)]
-	result[,Hora_en_la_que_se_sento:=as.Date(Hora_en_la_que_se_sento,"%Y-%m-%d")]
+	criterio <- paste0('{"Fecha":"',Fecha_Fin,'"}')
+	result <- data.table(trips_collection$find(query = criterio) )
+	# result <- data.table(trips_collection$find(query = '{}') )
 	
-	a <- sort(unique(result$Fecha))#[-1]
-	
-	if((Fecha_Ini %in% as.character(a))==1){
-		
-		result <- result[Fecha!=Fecha_Ini,]
-		
-		criterio <- paste0('{"Fecha":"',Fecha_Ini,'"}')
+	if (nrow(result)>0){
+		criterio <- paste0('{"Fecha":"',Fecha_Fin,'"}')
 		trips_collection$remove(query = criterio)
 		trips_collection$insert(Tracking_reservas)
-	
-	}else{
+	} else {
 		trips_collection$insert(Tracking_reservas)
-		
-		# if(unique(result$Fecha)>230){
-		# 	a <- sort(unique(result$Fecha))[1]
-		# 	criterio <- paste0('{"Fecha":"',a,'"}')
-		# 	trips_collection$remove(query = criterio)
-		# }
+	}	
+
 	
-	}
+	# if((Fecha_Ini %in% as.character(a))==1){
+		
+	# 	result <- result[Fecha!=Fecha_Ini,]
+		
+	# 	criterio <- paste0('{"Fecha":"',Fecha_Ini,'"}')
+	# 	trips_collection$remove(query = criterio)
+	# 	trips_collection$insert(Tracking_reservas)
+	
+	# }else{
+	# 	trips_collection$insert(Tracking_reservas)
+		
+	# 	# if(unique(result$Fecha)>230){
+	# 	# 	a <- sort(unique(result$Fecha))[1]
+	# 	# 	criterio <- paste0('{"Fecha":"',a,'"}')
+	# 	# 	trips_collection$remove(query = criterio)
+	# 	# }
+	
+	# }
 	
 	# if(length(a)==210){
 		
@@ -78,7 +82,9 @@ Datos <- function(Fecha_Ini, Fecha_Fin){
 		
 	# }
 	#l = list(result,Tracking_reservas)
-	Tracking_reservas <- rbind(result,Tracking_reservas,fill=TRUE)
+	
+	#  el rbind sirve cuando se entrena el modelo y se necesita toda la info
+	# Tracking_reservas <- rbind(result,Tracking_reservas,fill=TRUE)
 	Tracking_reservas
 }
 
@@ -183,6 +189,7 @@ Prep_Data <- function(x,Entrena_Model=0){
 	tabla_festivos <- html_table(pagina)
 
 	Festivos <- Fecha_Form(tabla_festivos[[1]]$Fecha)
+	Festivos <- Festivos[!is.na(Festivos)]
 		
 	x[,GFestivos:=ifelse(Fecha %in% Festivos,1,0)]
 	
@@ -300,5 +307,16 @@ Temperatura <- function(Lis_Mes=c(2,3,4,5,6),Ano=2023){
 	}
 	T2
 }
+
+###################################################################
+### VARIABLES DEL MODELO ###
+###################################################################
+
+Vexp <- c("Hora", "PAX", "Mesa", "Zona_de_la_mesa", "Origen", 
+			"Fecha_anadida", "Hora_anadida", "Reconfirmado", 
+			"Restaurante2", "Tiempo_Reserva", "Mes_Ir", "Dia_Mes_Ir", 
+			"Dia_Semana_Ir", "Mes_Res", "Dia_Mes_Res", "Dia_Semana_Res", 
+			"Reservas_Antes", "Reservas_Antes_Rest", "Antiguedad", 
+			"Antiguedad_Incumplimiento", "GFestivos")
 
 # save.image(file="/Users/admin/Documents/Projects/Altas Vistas/Desercion/GitHub/Funciones.RData") 
