@@ -234,6 +234,8 @@ Prep_Data <- function(x,Entrena_Model=0){
 
 	# NA's
 	x[ , Hora_en_la_que_se_sento:= ifelse(is.na(Hora_en_la_que_se_sento)== TRUE, 0, Hora_en_la_que_se_sento)]
+	x[ , Telefono:= ifelse(is.na(Telefono)== TRUE, 0, Telefono)]
+	x[ , Telefono:= as.character(Telefono)]
 
 	# x[is.na(Hora_en_la_que_se_sento)==1,Hora_en_la_que_se_sento:=1,]
 	# x[,Hora_en_la_que_se_sento:=as.character(Hora_en_la_que_se_sento),]
